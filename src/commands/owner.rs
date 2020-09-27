@@ -1,5 +1,5 @@
 use crate::ShardManagerContainer;
-use serenity::framework::standard::{macros::command, CommandResult};
+use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
@@ -18,5 +18,17 @@ async fn kill(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
 
+    Ok(())
+}
+
+#[command]
+#[owners_only]
+async fn welcome(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    Ok(())
+}
+
+#[command]
+#[owners_only]
+async fn roles(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     Ok(())
 }

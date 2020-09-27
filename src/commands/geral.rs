@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::error;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
@@ -59,13 +59,53 @@ async fn spymute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
         Ok(ch) => ch,
         Err(why) => {
             error!("Error getting channel: {:?}", why);
+            msg.channel_id
+                .say(&ctx.http, "Oops, encontrei um problema!")
+                .await?;
 
-            return Err(why);
+            return Ok(());
         }
     };
 
     let members = match channel.guild().unwrap().members(&ctx.cache).await {
         Ok(m) => m,
+        Err(why) => {
+            error!("Error getting member list: {:?}", why);
+            msg.channel_id
+                .say(&ctx.http, "Oops, encontrei um problema!")
+                .await?;
+
+            return Ok(());
+        }
+    };
+
+    let spy = match members.iter().find(|m| *m.user.id.as_u64() == SPY_ID) {
+        Some(m) => m,
+        None => {
+            msg.channel_id
+                .say(&ctx.http, "Não encontrei o espião no seu canal de voz.")
+                .await?;
+
+            return Ok(());
+        }
+    };
+
+    match spy.edit(&ctx.http, |e| e.mute(!off)).await {
+        Ok(_) => {
+            let text = if off {
+                "Desmutei, se é isso que você quer..."
+            } else {
+                "Pronto, pode desfrutar da paz"
+            };
+
+            msg.channel_id.say(&ctx.http, text).await?;
+        }
+        Err(why) => {
+            error!("Error (un)muting: {:?}", why);
+            msg.channel_id
+                .say(&ctx.http, "Oops, encontrei um problema!")
+                .await?;
+        }
     };
 
     Ok(())

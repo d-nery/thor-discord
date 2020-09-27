@@ -1,7 +1,7 @@
 mod commands;
 mod hooks;
 
-use commands::{geral::*, info::*, misc::*, owner::*};
+use commands::{games::*, geral::*, info::*, misc::*, owner::*};
 use log::{error, info};
 use serenity::{
     async_trait,
@@ -38,12 +38,16 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(avatar)]
+#[commands(avatar, spymute)]
 struct Geral;
 
 #[group]
 #[commands(ping)]
 struct Info;
+
+#[group]
+#[commands(amongas)]
+struct Games;
 
 #[group]
 #[commands(gg, coin)]
@@ -74,16 +78,16 @@ async fn bot_help(
 
 #[tokio::main]
 async fn main() {
-    info!("THOR Discord - Initializing");
     kankyo::load(false).expect("Failed to load .env file");
-
     env_logger::init();
+
+    info!("THOR Discord - Initializing");
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     let prefix = env::var("BOT_PREFIX").expect("Expected a bot prefix in the environment");
     let http = Http::new_with_token(&token);
 
-    let (owners, _bot_id) = match http.get_current_application_info().await {
+    let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
@@ -93,12 +97,11 @@ async fn main() {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
-    // Create the framework
     let framework = StandardFramework::new()
         .configure(|c| {
             c.owners(owners)
                 .with_whitespace(true)
-                .on_mention(Some(_bot_id))
+                .on_mention(Some(bot_id))
                 .prefix(&prefix)
                 .delimiters(vec![", ", ",", " "])
         })
@@ -106,6 +109,7 @@ async fn main() {
         .after(hooks::after)
         .help(&BOT_HELP)
         .group(&GERAL_GROUP)
+        .group(&GAMES_GROUP)
         .group(&INFO_GROUP)
         .group(&MISC_GROUP)
         .group(&BOTADMIN_GROUP);
