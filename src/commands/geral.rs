@@ -26,7 +26,7 @@ const SPY_ID: u64 = 348917866222845952;
 #[aliases("sm")]
 #[only_in("guild")]
 async fn spymute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    if *msg.author.id.as_u64() == SPY_ID {
+    if msg.author.id.0 == SPY_ID {
         msg.channel_id
             .say(&ctx.http, "Espião, você não pode usar esse comando...")
             .await?;
@@ -79,7 +79,7 @@ async fn spymute(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
         }
     };
 
-    let spy = match members.iter().find(|m| *m.user.id.as_u64() == SPY_ID) {
+    let spy = match members.iter().find(|m| m.user.id.0 == SPY_ID) {
         Some(m) => m,
         None => {
             msg.channel_id

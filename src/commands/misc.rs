@@ -7,7 +7,7 @@ use serenity::prelude::*;
 #[usage("")]
 #[description("GG izi")]
 async fn gg(ctx: &Context, msg: &Message) -> CommandResult {
-    let options = vec!["izi", "ez!", "coxa"];
+    let options = ["izi", "ez!", "coxa"];
     let choice = options.choose(&mut rand::thread_rng());
 
     msg.channel_id.say(&ctx.http, choice.unwrap()).await?;
