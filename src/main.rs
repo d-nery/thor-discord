@@ -16,12 +16,18 @@ use serenity::{
     model::{event::ResumedEvent, gateway::Ready},
     prelude::*,
 };
-use std::{collections::HashSet, env, sync::Arc};
+use std::{collections::HashSet, env, sync::Arc, time::Instant};
 
-struct ShardManagerContainer;
+pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
+}
+
+pub struct Uptime;
+
+impl TypeMapKey for Uptime {
+    type Value = Arc<Instant>;
 }
 
 struct Handler;
@@ -42,7 +48,7 @@ impl EventHandler for Handler {
 struct Geral;
 
 #[group]
-#[commands(ping)]
+#[commands(marco, info)]
 struct Info;
 
 #[group]
@@ -63,7 +69,8 @@ struct BotAdmin;
 #[lacking_role("hide")]
 #[strikethrough_commands_tip_in_dm("")]
 #[strikethrough_commands_tip_in_guild("")]
-#[command_not_found_text("Não encontrei esse comando :(")]
+#[command_not_found_text("Não encontrei o comando `{}` :(")]
+#[max_levenshtein_distance(3)]
 async fn bot_help(
     context: &Context,
     msg: &Message,
@@ -123,6 +130,7 @@ async fn main() {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<Uptime>(Arc::new(Instant::now()));
     }
 
     if let Err(why) = client.start().await {

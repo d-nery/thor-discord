@@ -24,11 +24,13 @@ async fn kill(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[owners_only]
 async fn welcome(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    msg.channel_id.say(&ctx.http, "NYI").await?;
     Ok(())
 }
 
 #[command]
 #[owners_only]
 async fn roles(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    msg.channel_id.say(&ctx.http, "NYI").await?;
     Ok(())
 }
