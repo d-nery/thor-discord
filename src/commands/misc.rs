@@ -27,9 +27,9 @@ async fn coin(ctx: &Context, msg: &Message) -> CommandResult {
             if n < 0.001 {
                 "Eita, caiu em pé!"
             } else if n < 0.5005 {
-                "Cara!"
+                ":coin: Cara!"
             } else {
-                "Coroa!"
+                ":coin: Coroa!"
             },
         )
         .await?;

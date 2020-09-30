@@ -2,7 +2,6 @@ mod commands;
 mod hooks;
 
 use commands::{games::*, geral::*, info::*, misc::*, owner::*};
-use log::{error, info};
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
@@ -12,11 +11,14 @@ use serenity::{
         Args, CommandGroup, CommandResult, HelpOptions, StandardFramework,
     },
     http::Http,
+    model::channel::Reaction,
     model::prelude::*,
     model::{event::ResumedEvent, gateway::Ready},
     prelude::*,
+    utils::Colour,
 };
 use std::{collections::HashSet, env, sync::Arc, time::Instant};
+use tracing::{error, info, instrument};
 
 pub struct ShardManagerContainer;
 
@@ -41,6 +43,10 @@ impl EventHandler for Handler {
     async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("Resumed");
     }
+
+    async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
+        hooks::roles::reaction_add(&ctx, add_reaction).await;
+    }
 }
 
 #[group]
@@ -60,7 +66,7 @@ struct Games;
 struct Misc;
 
 #[group]
-#[commands(kill)]
+#[commands(kill, welcome, roles)]
 struct BotAdmin;
 
 #[help]
@@ -70,7 +76,8 @@ struct BotAdmin;
 #[strikethrough_commands_tip_in_dm("")]
 #[strikethrough_commands_tip_in_guild("")]
 #[command_not_found_text("Não encontrei o comando `{}` :(")]
-#[max_levenshtein_distance(3)]
+#[max_levenshtein_distance(2)]
+#[description_label("Desc label")]
 async fn bot_help(
     context: &Context,
     msg: &Message,
@@ -79,14 +86,20 @@ async fn bot_help(
     groups: &[&'static CommandGroup],
     owners: HashSet<UserId>,
 ) -> CommandResult {
-    let _ = help_commands::with_embeds(context, msg, args, &help_options, groups, owners).await;
+    let mut ho = help_options.clone();
+
+    ho.embed_error_colour = Colour::from_rgb(0x01, 0x17, 0x49);
+    ho.embed_success_colour = Colour::from_rgb(0xFC, 0xE7, 0x02);
+
+    let _ = help_commands::with_embeds(context, msg, args, &ho, groups, owners).await;
     Ok(())
 }
 
 #[tokio::main]
+#[instrument]
 async fn main() {
     kankyo::load(false).expect("Failed to load .env file");
-    env_logger::init();
+    tracing_subscriber::fmt::init();
 
     info!("THOR Discord - Initializing");
 

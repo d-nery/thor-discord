@@ -1,15 +1,17 @@
-use log::info;
 use serenity::{
     framework::standard::{macros::hook, CommandError},
     model::channel::Message,
     prelude::*,
 };
+use tracing::info;
+
+pub mod roles;
 
 #[hook]
 pub async fn before(_: &Context, msg: &Message, command_name: &str) -> bool {
     info!(
-        "Got command '{}' from user '{}'",
-        command_name, msg.author.name
+        "Got command '{}' from user '{}' ({})",
+        command_name, msg.author.name, msg.author.id.0
     );
 
     true
