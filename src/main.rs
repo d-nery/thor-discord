@@ -17,6 +17,7 @@ use serenity::{
     prelude::*,
     utils::Colour,
 };
+use sqlx::sqlite::SqlitePool;
 use std::{collections::HashSet, env, sync::Arc, time::Instant};
 use tracing::{error, info, instrument};
 
@@ -30,6 +31,12 @@ pub struct Uptime;
 
 impl TypeMapKey for Uptime {
     type Value = Arc<Instant>;
+}
+
+pub struct DbPool;
+
+impl TypeMapKey for DbPool {
+    type Value = SqlitePool;
 }
 
 struct Handler;
@@ -46,6 +53,10 @@ impl EventHandler for Handler {
 
     async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
         hooks::roles::reaction_add(&ctx, add_reaction).await;
+    }
+
+    async fn reaction_remove(&self, ctx: Context, remove_reaction: Reaction) {
+        hooks::roles::reaction_remove(&ctx, remove_reaction).await;
     }
 }
 
@@ -138,12 +149,18 @@ async fn main() {
         .framework(framework)
         .event_handler(Handler)
         .await
-        .expect("Err creating client");
+        .expect("Error creating client");
 
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<Uptime>(Arc::new(Instant::now()));
+
+        let pool = SqlitePool::connect(&env!("DATABASE_URL"))
+            .await
+            .expect("Error opening DB");
+
+        data.insert::<DbPool>(pool);
     }
 
     if let Err(why) = client.start().await {
