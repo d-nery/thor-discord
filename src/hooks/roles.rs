@@ -7,7 +7,6 @@ use serenity::{
     prelude::*,
 };
 use sqlx;
-use tracing::info;
 
 pub async fn reaction_add(ctx: &Context, reaction: Reaction) {
     // Ignore the bot
