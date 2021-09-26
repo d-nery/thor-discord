@@ -1,16 +1,19 @@
 use std::collections::HashMap;
 
-use crate::DbPool;
+use crate::db::{self, DbPool};
 
 use serenity::{
-    model::channel::{Reaction, ReactionType},
+    model::{
+        channel::{Reaction, ReactionType},
+        id::UserId,
+    },
     prelude::*,
 };
-use sqlx;
+use tracing::info;
 
 pub async fn reaction_add(ctx: &Context, reaction: Reaction) {
     // Ignore the bot
-    if &reaction.user_id.unwrap().0 == ctx.cache.current_user().await.id.as_u64() {
+    if &reaction.user_id.unwrap_or(UserId(0)).0 == ctx.cache.current_user().await.id.as_u64() {
         return;
     }
 
@@ -21,29 +24,26 @@ pub async fn reaction_add(ctx: &Context, reaction: Reaction) {
         data_read.get::<DbPool>().unwrap().clone()
     };
 
-    let mid = match sqlx::query!("SELECT value FROM KV WHERE key = ?", "roles/mid",)
-        .fetch_one(&pool)
+    let mid = db::kv::get(&pool, "roles/mid")
         .await
-    {
-        Ok(v) => v.value.parse::<u64>().expect("Failed to parse value from database"),
-        Err(_) => return,
-    };
+        .unwrap_or("0".into())
+        .parse::<u64>()
+        .unwrap_or(0);
+
+    info!("Reaction received on message {}", msg_id);
 
     if msg_id != mid {
         return;
     }
 
-    let emoji_roles: HashMap<u64, u64> = vec![
-        (756167876892819587, 756173259023712356),
-        (757979945073901719, 758031459322822886),
-        (695713356677382144, 694697369601703947),
-        (695711532625035335, 694698985096740955),
-        (695713708206325850, 695274941020635206),
-        (757979366205423627, 757979414930653256),
-        (695715960354635786, 695718502497255516),
-    ]
-    .into_iter()
-    .collect();
+    info!("Role reaction added by {:?}", reaction.user_id);
+
+    let emoji_roles: HashMap<u64, u64> = db::roles::get_all(&pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|e| (e.eid as u64, e.rid as u64))
+        .collect();
 
     match reaction.emoji {
         ReactionType::Custom { id, .. } => {
@@ -55,7 +55,8 @@ pub async fn reaction_add(ctx: &Context, reaction: Reaction) {
                         Some(reaction.user_id.unwrap().0),
                         &reaction.emoji,
                     )
-                    .await;
+                    .await
+                    .unwrap();
             }
 
             ctx.http
@@ -64,7 +65,8 @@ pub async fn reaction_add(ctx: &Context, reaction: Reaction) {
                     reaction.user_id.unwrap().0,
                     *emoji_roles.get(&id.0).unwrap(),
                 )
-                .await;
+                .await
+                .unwrap();
         }
         _ => {
             ctx.http
@@ -74,14 +76,15 @@ pub async fn reaction_add(ctx: &Context, reaction: Reaction) {
                     Some(reaction.user_id.unwrap().0),
                     &reaction.emoji,
                 )
-                .await;
+                .await
+                .unwrap();
         }
     }
 }
 
 pub async fn reaction_remove(ctx: &Context, reaction: Reaction) {
     // Ignore the bot
-    if &reaction.user_id.unwrap().0 == ctx.cache.current_user().await.id.as_u64() {
+    if &reaction.user_id.unwrap_or(UserId(0)).0 == ctx.cache.current_user().await.id.as_u64() {
         return;
     }
 
@@ -92,29 +95,22 @@ pub async fn reaction_remove(ctx: &Context, reaction: Reaction) {
         data_read.get::<DbPool>().unwrap().clone()
     };
 
-    let mid = match sqlx::query!("SELECT value FROM KV WHERE key = ?", "roles/mid",)
-        .fetch_one(&pool)
+    let mid = db::kv::get(&pool, "roles/mid")
         .await
-    {
-        Ok(v) => v.value.parse::<u64>().expect("Failed to parse value from database"),
-        Err(_) => return,
-    };
+        .unwrap_or("0".to_string())
+        .parse::<u64>()
+        .unwrap_or(0);
 
     if msg_id != mid {
         return;
     }
 
-    let emoji_roles: HashMap<u64, u64> = vec![
-        (756167876892819587, 756173259023712356),
-        (757979945073901719, 758031459322822886),
-        (695713356677382144, 694697369601703947),
-        (695711532625035335, 694698985096740955),
-        (695713708206325850, 695274941020635206),
-        (757979366205423627, 757979414930653256),
-        (695715960354635786, 695718502497255516),
-    ]
-    .into_iter()
-    .collect();
+    let emoji_roles: HashMap<u64, u64> = db::roles::get_all(&pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|e| (e.eid as u64, e.rid as u64))
+        .collect();
 
     match reaction.emoji {
         ReactionType::Custom { id, .. } => {
@@ -128,7 +124,8 @@ pub async fn reaction_remove(ctx: &Context, reaction: Reaction) {
                     reaction.user_id.unwrap().0,
                     *emoji_roles.get(&id.0).unwrap(),
                 )
-                .await;
+                .await
+                .unwrap();
         }
         _ => (),
     }

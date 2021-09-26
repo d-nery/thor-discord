@@ -1,0 +1,45 @@
+name: thor
+version: "0.3.0"
+about: Thor discord bot
+author: Daniel Nery <danielnso97@gmail.com>
+
+settings:
+  - ArgRequiredElseHelp
+
+args:
+  - token:
+      about: Discord token
+      short: t
+      long: token
+      takes_value: true
+      global: true
+  - appid:
+      about: Application ID
+      long: appid
+      takes_value: true
+      global: true
+
+subcommands:
+  - start:
+      about: starts the bot
+  - commands:
+      settings:
+        - ArgRequiredElseHelp
+      args:
+        - gid:
+            about: Guild ID
+            long: gid
+            takes_value: true
+      subcommands:
+        - list:
+            about: list all slash commands
+        - create:
+            about: create slash commands
+        - delete:
+            about: delete slash commands
+            args:
+              - id:
+                  about: Command ID
+                  long: id
+                  takes_value: true
+                  required: true
