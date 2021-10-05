@@ -6,8 +6,9 @@ const { appId, guildId, token } = require("../config.json");
 const { InfoCmd } = require("../dist/src/commands/impl/info");
 const { RolesCmd } = require("../dist/src/commands/impl/roles");
 const { AvatarCmd } = require("../dist/src/commands/impl/avatar");
+const { RobotCmd } = require("../dist/src/commands/impl/robot");
 
-const commands = [new InfoCmd(), new RolesCmd(), new AvatarCmd()].map((cmd) => cmd.create().toJSON());
+const commands = [new InfoCmd(), new RolesCmd(), new AvatarCmd(), new RobotCmd()].map((cmd) => cmd.create().toJSON());
 
 const rest = new REST({ version: "9" }).setToken(token);
 

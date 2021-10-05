@@ -1,10 +1,7 @@
-import {  MessageReaction, PartialMessageReaction, PartialUser, User } from "discord.js";
+import { MessageReaction, PartialMessageReaction, PartialUser, User } from "discord.js";
 import { Logger } from "tslog";
-import { Inject, Service, Token } from "typedi";
-import { Config, ConfigKey } from "../model/config";
-import { ConfigRepositoryToken } from "./ConfigRepository";
-
-import { IHandler, IRepository } from "./services";
+import { Inject, Service } from "typedi";
+import { ConfigRepository } from "./ConfigRepository";
 
 export type ReactionEvent = {
   reaction: MessageReaction | PartialMessageReaction;
@@ -12,15 +9,13 @@ export type ReactionEvent = {
   removed?: boolean;
 };
 
-export const ReactionHandlerToken = new Token<IHandler<ReactionEvent>>("services.reaction_handler");
-
 @Service()
-export class ReactionHandler implements IHandler<ReactionEvent> {
-  @Inject("logger")
+export class ReactionHandler {
+  @Inject()
   private readonly logger: Logger;
 
-  @Inject(ConfigRepositoryToken)
-  private readonly configRepository: IRepository<ConfigKey, Config>;
+  @Inject()
+  private readonly configRepository: ConfigRepository;
 
   async handle({ reaction, user, removed = false }: ReactionEvent): Promise<void> {
     if (user.bot) {

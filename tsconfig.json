@@ -19,9 +19,11 @@
         "emitDecoratorMetadata": true,
         "resolveJsonModule": true,
         "esModuleInterop": true,
-        "outDir": "dist/"
+        "outDir": "dist/",
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "dist",
+        "build"
     ]
 }

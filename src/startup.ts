@@ -3,13 +3,11 @@ import { Logger, TLogLevelName } from "tslog";
 import { Container } from "typedi";
 import admin, { ServiceAccount } from "firebase-admin";
 
-import { InteractionHandler, InteractionHandlerToken } from "./services/InteractionHandler";
-import { ConfigRepository, ConfigRepositoryToken } from "./services/ConfigRepository";
-
 import { InfoCmd } from "./commands/impl/info";
 import { RolesCmd } from "./commands/impl/roles";
 import { AvatarCmd } from "./commands/impl/avatar";
-import { ReactionHandler, ReactionHandlerToken } from "./services/ReactionHandler";
+import { RobotCmd } from "./commands/impl/robot";
+import { Firestore } from "@google-cloud/firestore";
 
 /**
  * This method initializes everything and injects all dependencies
@@ -24,9 +22,9 @@ export default async (): Promise<void> => {
 
   Container.set("discord.token", config.token);
 
-  Container.set("logger", new Logger({ minLevel: config.logLevel as TLogLevelName }));
+  Container.set(Logger, new Logger({ minLevel: config.logLevel as TLogLevelName }));
   Container.set(
-    "discord.client",
+    Client,
     new Client({
       intents: [
         Intents.FLAGS.GUILDS,
@@ -42,11 +40,6 @@ export default async (): Promise<void> => {
 
   // Initialize DB client
   admin.initializeApp({ credential: admin.credential.cert(config.firebase as ServiceAccount) });
-  Container.set("db.firestore_client", admin.firestore());
-  Container.set(ConfigRepositoryToken, Container.get(ConfigRepository));
-
-  // Initialze all commands and handlers
-  Container.import([InfoCmd, RolesCmd, AvatarCmd]);
-  Container.set(InteractionHandlerToken, Container.get(InteractionHandler));
-  Container.set(ReactionHandlerToken, Container.get(ReactionHandler));
+  Container.set(Firestore, admin.firestore());
+  Container.import([InfoCmd, RolesCmd, AvatarCmd, RobotCmd]);
 };

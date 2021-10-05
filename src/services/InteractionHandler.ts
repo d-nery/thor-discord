@@ -1,15 +1,12 @@
 import { Interaction } from "discord.js";
 import { Logger } from "tslog";
-import Container, { Inject, Service, Token } from "typedi";
+import Container, { Inject, Service } from "typedi";
 
 import { CommandToken, ICommand } from "../commands/command";
-import { IHandler } from "./services";
-
-export const InteractionHandlerToken = new Token<IHandler<Interaction>>("services.interaction_handler");
 
 @Service()
-export class InteractionHandler implements IHandler<Interaction> {
-  @Inject("logger")
+export class InteractionHandler {
+  @Inject()
   private readonly logger: Logger;
 
   private readonly commands: ICommand[];

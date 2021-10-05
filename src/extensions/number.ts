@@ -1,6 +1,6 @@
 declare global {
   interface Number {
-    toTime(): string;
+    toTime(in_seconds?: boolean): string;
   }
 }
 

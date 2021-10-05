@@ -1,20 +1,17 @@
 import { Firestore } from "@google-cloud/firestore";
-import { Inject, Service, Token } from "typedi";
+import { Inject, Service } from "typedi";
 import { Logger } from "tslog";
 
 import { Config, configConverter, ConfigKey } from "../model/config";
-import { IRepository } from "./services";
-
-export const ConfigRepositoryToken = new Token<IRepository<ConfigKey, Config>>("db.config_repository");
 
 @Service()
-export class ConfigRepository implements IRepository<ConfigKey, Config> {
+export class ConfigRepository {
   private readonly key = "config";
 
-  @Inject("db.firestore_client")
+  @Inject()
   private readonly client: Firestore;
 
-  @Inject("logger")
+  @Inject()
   private readonly logger: Logger;
 
   async set(guildId: string, key: ConfigKey, value: Config): Promise<void> {
@@ -46,5 +43,11 @@ export class ConfigRepository implements IRepository<ConfigKey, Config> {
       .get();
 
     return guildConfig.data();
+  }
+
+  async list(): Promise<Array<string>> {
+    const guildList = await this.client.collection(this.key).listDocuments();
+
+    return guildList.map((d) => d.id);
   }
 }

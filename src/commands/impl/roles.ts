@@ -3,17 +3,16 @@ import { Logger } from "tslog";
 import { CommandInteraction, Message } from "discord.js";
 import { Inject, Service } from "typedi";
 
-import { ConfigRepositoryToken } from "../../services/ConfigRepository";
+import { ConfigRepository } from "../../services/ConfigRepository";
 import { CommandToken, ICommand } from "../command";
-import { Config, ConfigKey } from "../../model/config";
-import { IRepository } from "../../services/services";
+import { ConfigKey } from "../../model/config";
 
 @Service({ id: CommandToken, multiple: true })
 export class RolesCmd implements ICommand {
-  @Inject(ConfigRepositoryToken)
-  private readonly configRepository: IRepository<ConfigKey, Config>;
+  @Inject()
+  private readonly configRepository: ConfigRepository;
 
-  @Inject("logger")
+  @Inject()
   private readonly logger: Logger;
 
   readonly name: string = "roles";

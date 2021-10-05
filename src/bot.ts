@@ -1,32 +1,32 @@
-import { Client, Interaction } from "discord.js";
+import { Client } from "discord.js";
 import { Inject, Service } from "typedi";
 import { Logger } from "tslog";
 
-import { InteractionHandlerToken } from "./services/InteractionHandler";
-import { ReactionEvent, ReactionHandlerToken } from "./services/ReactionHandler";
-import { IHandler } from "./services/services";
+import { InteractionHandler } from "./services/InteractionHandler";
+import { ReactionHandler } from "./services/ReactionHandler";
 
 @Service()
 export class Bot {
-  @Inject("discord.client")
+  @Inject()
   private readonly client: Client;
 
   @Inject("discord.token")
   private readonly token: string;
 
-  @Inject("logger")
+  @Inject()
   private readonly logger: Logger;
 
-  @Inject(InteractionHandlerToken)
-  private readonly interactionHandler: IHandler<Interaction>;
+  @Inject()
+  private readonly interactionHandler: InteractionHandler;
 
-  @Inject(ReactionHandlerToken)
-  private readonly reactionHandler: IHandler<ReactionEvent>;
+  @Inject()
+  private readonly reactionHandler: ReactionHandler;
 
   async setup(): Promise<void> {
     this.logger.info("Setting up bot listeners");
 
-    this.client.once("ready", (client) => {
+    this.client.once("ready", async (client) => {
+      await client.application.fetch();
       const bot_owner = client.application.owner;
 
       this.logger.info("Successfully logged into Discord");
@@ -44,15 +44,27 @@ export class Bot {
     });
 
     this.client.on("messageReactionAdd", async (reaction, user) => {
-      await this.reactionHandler.handle({ reaction, user });
+      try {
+        await this.reactionHandler.handle({ reaction, user });
+      } catch (err) {
+        this.logger.error("Error running reacton handler", err);
+      }
     });
 
     this.client.on("messageReactionRemove", async (reaction, user) => {
-      await this.reactionHandler.handle({ reaction, user, removed: true });
+      try {
+        await this.reactionHandler.handle({ reaction, user, removed: true });
+      } catch (err) {
+        this.logger.error("Error running reacton handler", err);
+      }
     });
 
     this.client.on("interactionCreate", async (interaction) => {
-      await this.interactionHandler.handle(interaction);
+      try {
+        await this.interactionHandler.handle(interaction);
+      } catch (err) {
+        this.logger.error("Error running interaction", err);
+      }
     });
   }
 
