@@ -13,8 +13,4 @@ const start = async (): Promise<void> => {
   await bot.run();
 };
 
-try {
-  start();
-} catch (err) {
-  console.error(err);
-}
+start().catch(console.error);

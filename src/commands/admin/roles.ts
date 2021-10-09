@@ -4,7 +4,7 @@ import { CommandInteraction, Message } from "discord.js";
 import { Inject, Service } from "typedi";
 
 import { ConfigRepository } from "../../services/ConfigRepository";
-import { CommandToken, ICommand } from "../command";
+import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
 import { ConfigKey } from "../../model/config";
 
 @Service({ id: CommandToken, multiple: true })
@@ -16,17 +16,17 @@ export class RolesCmd implements ICommand {
   private readonly logger: Logger;
 
   readonly name: string = "roles";
-  readonly description: string = "Info about the bot";
+  readonly description: string = "Creates role list that members can interact to get game roles";
 
-  create(): SlashCommandBuilder {
-    return new SlashCommandBuilder().setName(this.name).setDescription(this.description); //.setDefaultPermission(false);
+  async create(): Promise<SlashCommandBuilder> {
+    return new SlashCommandBuilder().setName(this.name).setDescription(this.description).setDefaultPermission(false);
   }
 
-  permissions(owner_id: string): [{ id: string; type: string; permission: boolean }?] {
+  permissions(owner_id: string): [CommandPermission?] {
     return [
       {
         id: owner_id,
-        type: "USER",
+        type: 2,
         permission: true,
       },
     ];
@@ -38,7 +38,12 @@ export class RolesCmd implements ICommand {
     const { channel, guild } = interaction;
     const emojis = await guild.emojis.fetch();
     const roles = await guild.roles.fetch();
-    const emoji_roles = (await this.configRepository.get(guild.id)).roles ?? [];
+    const emoji_roles = (await this.configRepository.get(guild.id))?.roles ?? [];
+
+    if (emoji_roles.length == 0) {
+      await interaction.editReply("No roles defined for this guild!");
+      return;
+    }
 
     let text = "Reaja abaixo para escolher um cargo de jogo e receber notificação se mencionarem!\n\n";
 
@@ -54,7 +59,7 @@ export class RolesCmd implements ICommand {
 
     this.logger.debug(`Updating DB with new channel and message ID`);
 
-    await this.configRepository.set(guild.id, ConfigKey.ROLES_CID, { [ConfigKey.ROLES_CID]: channel.id });
-    await this.configRepository.set(guild.id, ConfigKey.ROLES_MID, { [ConfigKey.ROLES_MID]: reply.id });
+    await this.configRepository.set(guild.id, ConfigKey.ROLES_CID, channel.id);
+    await this.configRepository.set(guild.id, ConfigKey.ROLES_MID, reply.id);
   }
 }

@@ -2,7 +2,7 @@ import { Interaction } from "discord.js";
 import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
 
-import { CommandToken, ICommand } from "../commands/command";
+import { CommandToken, ICommand } from "../commands/CommandManager";
 
 @Service()
 export class InteractionHandler {
@@ -17,7 +17,7 @@ export class InteractionHandler {
 
   async handle(interaction: Interaction): Promise<void> {
     if (!interaction.isCommand()) {
-      return Promise.reject();
+      return Promise.reject("Won't run non-command interactions.");
     }
 
     this.logger.info(`Received command ${interaction.commandName} by ${interaction.user.tag}`);
@@ -35,6 +35,10 @@ export class InteractionHandler {
       this.logger.error(`Failed to run command ${command.name}: ${err}`);
       if (!interaction.replied) {
         await interaction.reply({ content: "Whoops! Algo deu errado :(", ephemeral: true });
+      }
+
+      if (interaction.deferred) {
+        await interaction.editReply({ content: "Whoops! Algo deu errado :(" });
       }
 
       return;

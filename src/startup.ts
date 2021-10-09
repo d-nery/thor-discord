@@ -1,28 +1,40 @@
 import { Client, Intents } from "discord.js";
-import { Logger, TLogLevelName } from "tslog";
+import { ISettingsParam, Logger, TLogLevelName } from "tslog";
 import { Container } from "typedi";
 import admin, { ServiceAccount } from "firebase-admin";
 
-import { InfoCmd } from "./commands/impl/info";
-import { RolesCmd } from "./commands/impl/roles";
-import { AvatarCmd } from "./commands/impl/avatar";
-import { RobotCmd } from "./commands/impl/robot";
+import { RolesCmd } from "./commands/admin/roles";
+import { InfoCmd } from "./commands/misc/info";
+import { AvatarCmd } from "./commands/misc/avatar";
+import { RobotCmd } from "./commands/misc/robot";
 import { Firestore } from "@google-cloud/firestore";
+
+import { version } from "../package.json";
+import { CasinoCmd } from "./commands/casino/casino";
+import { CasinoProfileCmd } from "./commands/casino/profile";
+import { CasinoRegisterCmd } from "./commands/casino/register";
 
 /**
  * This method initializes everything and injects all dependencies
  */
 export default async (): Promise<void> => {
   let config = (await import("../config.json")).default;
+  let log_config: ISettingsParam = {
+    minLevel: config.logLevel as TLogLevelName,
+    displayFilePath: "hidden",
+  };
 
-  if (process.env.NODE_ENV === "debug") {
+  if (["dev", "development", "debug"].includes(process.env.NODE_ENV)) {
     const devConfig = (await import("../config.dev.json")).default;
     config = { ...config, ...devConfig };
+    log_config = { minLevel: config.logLevel as TLogLevelName };
   }
 
+  Container.set("app.config", config);
   Container.set("discord.token", config.token);
+  Container.set("app.version", version);
 
-  Container.set(Logger, new Logger({ minLevel: config.logLevel as TLogLevelName }));
+  Container.set(Logger, new Logger(log_config));
   Container.set(
     Client,
     new Client({
@@ -41,5 +53,6 @@ export default async (): Promise<void> => {
   // Initialize DB client
   admin.initializeApp({ credential: admin.credential.cert(config.firebase as ServiceAccount) });
   Container.set(Firestore, admin.firestore());
-  Container.import([InfoCmd, RolesCmd, AvatarCmd, RobotCmd]);
+  Container.import([InfoCmd, RolesCmd, AvatarCmd, RobotCmd, CasinoRegisterCmd]);
+  Container.import([CasinoProfileCmd]);
 };

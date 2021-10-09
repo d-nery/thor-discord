@@ -1,14 +1,14 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, GuildMember, User } from "discord.js";
 import { Service } from "typedi";
-import { CommandToken, ICommand } from "../command";
+import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
 
 @Service({ id: CommandToken, multiple: true })
 export class AvatarCmd implements ICommand {
   readonly name: string = "avatar";
   readonly description: string = "Get a user's avatar";
 
-  create(): SlashCommandBuilder {
+  async create(): Promise<SlashCommandBuilder> {
     return new SlashCommandBuilder()
       .addUserOption((op) => {
         return op.setName("who").setDescription("Whose avatar you want to see");
@@ -18,7 +18,7 @@ export class AvatarCmd implements ICommand {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  permissions(_owner_id: string): [{ id: string; type: string; permission: boolean }?] {
+  permissions(_owner_id: string): [CommandPermission?] {
     return [];
   }
 

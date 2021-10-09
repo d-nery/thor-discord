@@ -1,22 +1,21 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, MessageEmbed } from "discord.js";
-import { Service } from "typedi";
+import Container, { Service } from "typedi";
 
 import "../../extensions/number";
-import { CommandToken, ICommand } from "../command";
-import { version } from "../../../package.json";
+import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
 
 @Service({ id: CommandToken, multiple: true })
 export class InfoCmd implements ICommand {
   readonly name: string = "info";
   readonly description: string = "Info about the bot";
 
-  create(): SlashCommandBuilder {
+  async create(): Promise<SlashCommandBuilder> {
     return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  permissions(_owner_id: string): [{ id: string; type: string; permission: boolean }?] {
+  permissions(_owner_id: string): [CommandPermission?] {
     return [];
   }
 
@@ -37,7 +36,7 @@ export class InfoCmd implements ICommand {
           .setTitle("Thor, the Rat")
           .addField("Latency", `${ws_latency}/${rest_latency}ms`, true)
           .addField("Uptime", `${uptime}`, true)
-          .addField("Version", version, true)
+          .addField("Version", Container.get("app.version"), true)
           .toJSON(),
       ],
     });

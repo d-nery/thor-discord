@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 import { Inject, Service } from "typedi";
 
-import { CommandToken, ICommand } from "../command";
+import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
 import { RobotRepository } from "../../services/RobotRepository";
 import { buildRobotEmbed } from "../../utils/embeds";
 
@@ -14,21 +14,19 @@ export class RobotCmd implements ICommand {
   readonly name: string = "robot";
   readonly description: string = "Info about a team robot";
 
-  create(): SlashCommandBuilder {
+  async create(): Promise<SlashCommandBuilder> {
+    const choices = (await this.robotRepository.list()).map((k) => [k, k]) as [name: string, value: string][];
+
     return new SlashCommandBuilder()
       .addStringOption((op) => {
-        return op
-          .setName("robot")
-          .setDescription("Which robot to fetch")
-          .addChoices([["Apolkalipse", "apolka"]])
-          .setRequired(true);
+        return op.setName("robot").setDescription("Which robot to fetch").addChoices(choices).setRequired(true);
       })
       .setName(this.name)
       .setDescription(this.description);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  permissions(_owner_id: string): [{ id: string; type: string; permission: boolean }?] {
+  permissions(_owner_id: string): [CommandPermission?] {
     return [];
   }
 

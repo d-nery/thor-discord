@@ -4,12 +4,13 @@ export enum RobotKey {
   ACCENT = "accent",
   CATEGORY = "category",
   DEBUT = "debut",
-  IS_ACTIVE = "is_active",
   LOGO = "logo",
   NAME = "name",
+  RETIREMENT = "retirement",
   TROPHIES = "trophies",
   TYPOGRAPHY = "typography",
-  url = "url",
+  URL = "url",
+  WIKI = "wiki",
 }
 
 export class Robot {
@@ -17,13 +18,14 @@ export class Robot {
     readonly accent: number,
     readonly category: string,
     readonly debut: number,
-    readonly is_active: boolean,
     readonly logo: string,
     readonly name: string,
     readonly picture: string,
     readonly trophies: number[],
     readonly typography: string,
-    readonly url: string
+    readonly url: string,
+    readonly wiki?: string,
+    readonly retirement?: string
   ) {}
 }
 
@@ -38,13 +40,14 @@ export const robotConverter = {
       data.accent,
       data.category,
       data.debut,
-      data.is_active,
       data.logo,
       data.name,
       data.picture,
       data.trophies,
       data.typography,
-      data.url
+      data.url,
+      data.wiki,
+      data.retirement
     );
   },
 };

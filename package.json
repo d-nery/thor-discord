@@ -4,9 +4,10 @@
   "description": "Thor discord bot",
   "main": "dist/src/index.js",
   "scripts": {
-    "debug": "NODE_ENV=debug node dist/src/index.js",
+    "debug": "NODE_ENV=debug ts-node src/index.ts",
+    "register": "NODE_ENV=debug ts-node scripts/register-commands.ts",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
-    "watch": "tsc -p tsconfig.json -w",
     "test": "NODE_ENV=test mocha -r ts-node/register \"tests/**/*.spec.ts\""
   },
   "repository": {

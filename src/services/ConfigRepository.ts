@@ -14,7 +14,7 @@ export class ConfigRepository {
   @Inject()
   private readonly logger: Logger;
 
-  async set(guildId: string, key: ConfigKey, value: Config): Promise<void> {
+  async set(guildId: string, key: ConfigKey, value: string): Promise<void> {
     if (!Object.values(ConfigKey).includes(key)) {
       this.logger.warn(`Tried to insert invalid key in config ${key}`);
       return;
@@ -41,6 +41,12 @@ export class ConfigRepository {
       .doc(guildId ?? "default")
       .withConverter(configConverter)
       .get();
+
+    if (!guildConfig.exists) {
+      await this.client.collection(this.key).doc(guildId).create({});
+      this.logger.info("Added guild to database", { collection: this.key, guildId: guildId });
+      return null;
+    }
 
     return guildConfig.data();
   }
