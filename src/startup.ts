@@ -10,9 +10,11 @@ import { RobotCmd } from "./commands/misc/robot";
 import { Firestore } from "@google-cloud/firestore";
 
 import { version } from "../package.json";
-import { CasinoCmd } from "./commands/casino/casino";
 import { CasinoProfileCmd } from "./commands/casino/profile";
 import { CasinoRegisterCmd } from "./commands/casino/register";
+import { CasinoBichoCmd } from "./commands/casino/bicho/bicho";
+import { CasinoBichoHelpCmd } from "./commands/casino/bicho/help";
+import { CasinoBichoBetCmd } from "./commands/casino/bicho/bet";
 
 /**
  * This method initializes everything and injects all dependencies
@@ -53,6 +55,16 @@ export default async (): Promise<void> => {
   // Initialize DB client
   admin.initializeApp({ credential: admin.credential.cert(config.firebase as ServiceAccount) });
   Container.set(Firestore, admin.firestore());
+
+  // Other Commands
   Container.import([InfoCmd, RolesCmd, AvatarCmd, RobotCmd, CasinoRegisterCmd]);
+
+  // Casino subcommands
   Container.import([CasinoProfileCmd]);
+
+  // Casino subcommand groups
+  Container.import([CasinoBichoCmd]);
+
+  // Bicho subcommand group subcommands
+  Container.import([CasinoBichoHelpCmd, CasinoBichoBetCmd]);
 };

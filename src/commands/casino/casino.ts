@@ -1,26 +1,35 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
-import Container, { Inject, Service, Token } from "typedi";
-import { CasinoRepository } from "../../services/CasinoRepository";
-import { CommandPermission, ICommand, ISubCommand } from "../CommandManager";
+import { Logger } from "tslog";
+import { Inject, InjectMany, Service, Token } from "typedi";
+import { CommandPermission, ICommand, ISubCommand, ISubCommandGroup } from "../CommandManager";
 
-export const CasinoCommandToken = new Token<ISubCommand>("commands.casino");
+export const CasinoSubCommandToken = new Token<ISubCommand>("commands.casino");
+export const CasinoSubCommandGroupToken = new Token<ISubCommandGroup>("commands.casino[group]");
 
 @Service()
 export class CasinoCmd implements ICommand {
   readonly name: string = "casino";
   readonly description: string = "All casino commands";
+
+  @Inject()
+  private readonly logger: Logger;
+
+  @InjectMany(CasinoSubCommandToken)
   private readonly subcommands: ISubCommand[];
 
-  constructor() {
-    this.subcommands = Container.getMany(CasinoCommandToken);
-  }
+  @InjectMany(CasinoSubCommandGroupToken)
+  private readonly subcommandGroups: ISubCommandGroup[];
 
   async create(): Promise<SlashCommandBuilder> {
     const scb = new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
       .setDefaultPermission(false);
+
+    for (const subc of this.subcommandGroups) {
+      scb.addSubcommandGroup(await subc.create());
+    }
 
     for (const subc of this.subcommands) {
       scb.addSubcommand(await subc.create());
@@ -40,11 +49,20 @@ export class CasinoCmd implements ICommand {
   }
 
   async run(interaction: CommandInteraction): Promise<void> {
-    const subcommand = this.subcommands.find((s) => s.name == interaction.options.getSubcommand());
+    let subcommand: ISubCommandGroup | ISubCommand;
+
+    try {
+      subcommand = this.subcommandGroups.find((s) => s.name == interaction.options.getSubcommandGroup());
+    } catch {
+      subcommand = this.subcommands.find((s) => s.name == interaction.options.getSubcommand());
+    }
+
+    this.logger.debug("Received casino command", { user: interaction.user.tag, subcommand: subcommand.name });
+
     if (!subcommand) {
       throw "Invalid subcommand";
     }
 
-    subcommand.run(interaction);
+    await subcommand.run(interaction);
   }
 }

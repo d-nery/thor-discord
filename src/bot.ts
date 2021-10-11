@@ -4,6 +4,7 @@ import { Logger } from "tslog";
 
 import { InteractionHandler } from "./services/InteractionHandler";
 import { ReactionHandler } from "./services/ReactionHandler";
+import { DrawManager } from "./services/casino/DrawManager";
 
 @Service()
 export class Bot {
@@ -22,6 +23,9 @@ export class Bot {
   @Inject()
   private readonly reactionHandler: ReactionHandler;
 
+  @Inject()
+  private readonly drawManager: DrawManager;
+
   async setup(): Promise<void> {
     this.logger.info("Setting up bot listeners");
 
@@ -37,6 +41,8 @@ export class Bot {
       this.logger.info(`Serving ${client.guilds.cache.size} guilds`);
 
       this.logger.info("Bot ready");
+
+      await this.drawManager.setup();
     });
 
     this.client.on("debug", (msg) => {

@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction, GuildMember, Message, MessageActionRow, MessageButton, Permissions } from "discord.js";
+import { CommandInteraction, GuildMember, MessageActionRow, MessageButton, Permissions } from "discord.js";
+import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
 import { CasinoManager } from "../../services/casino/CasinoManager";
 import { CasinoRepository } from "../../services/CasinoRepository";
@@ -12,6 +13,9 @@ export class CasinoRegisterCmd implements ICommand {
 
   @Inject()
   private readonly casinoManager: CasinoManager;
+
+  @Inject()
+  private readonly logger: Logger;
 
   async create(): Promise<SlashCommandBuilder> {
     return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
@@ -27,21 +31,21 @@ export class CasinoRegisterCmd implements ICommand {
     repository.guildId = interaction.guildId;
 
     const user = interaction.member as GuildMember;
+    await interaction.deferReply({ ephemeral: true });
 
     if (!(await repository.guildRegistered())) {
       if (!user.permissions.has(Permissions.FLAGS.MANAGE_GUILD, true)) {
-        interaction.reply({
+        await interaction.editReply({
           content: "Opa! O cassino não está habilitado nesse servidor, somente admins podem habilitá-lo!",
-          ephemeral: true,
         });
 
         return;
       }
 
-      await interaction.reply({
+      await interaction.editReply({
         content:
           "Olá! O casino ainda não foi habilitado nesse servidor, deseja habilitá-lo?\n" +
-          "Isso vai criar novos canais e roles, além de registrar você nele.",
+          "Isso vai criar novos canais, comandos e roles, além de registrar você nele.",
         components: [
           new MessageActionRow().addComponents(
             new MessageButton()
@@ -54,7 +58,6 @@ export class CasinoRegisterCmd implements ICommand {
               .setStyle("DANGER")
           ),
         ],
-        ephemeral: true,
       });
 
       const collector = interaction.channel.createMessageComponentCollector({
@@ -65,13 +68,13 @@ export class CasinoRegisterCmd implements ICommand {
       collector.once("collect", async (i) => {
         if (i.customId.endsWith("confirm")) {
           await interaction.editReply({ content: "Show! Criando tudo que é necessário...", components: [] });
-          await interaction.followUp({
-            content:
-              "Olá! O ThunderCasino está sendo habilitado nesse servidor!\n" +
-              "Para se registrar nele e ter acesso aos canais, use o comando `/casino_register`",
-          });
 
-          this.casinoManager.guildFirstTime(interaction.guildId);
+          try {
+            await this.casinoManager.guildFirstTime(interaction.guildId);
+            await this.casinoManager.registerPlayer(interaction.guildId, user.id);
+          } catch (err) {
+            this.logger.error("error on guild first run", err);
+          }
         } else {
           await interaction.editReply({ content: "Ok, não irei habilitar o cassino", components: [] });
         }
@@ -86,6 +89,12 @@ export class CasinoRegisterCmd implements ICommand {
       return;
     }
 
-    interaction.reply("NYI");
+    if (await repository.playerRegistered(user.id)) {
+      await interaction.editReply({ content: "Hmm, você já está registrado no casino." });
+      return;
+    }
+
+    await this.casinoManager.registerPlayer(interaction.guildId, user.id);
+    await interaction.editReply({ content: "Pronto! Seu registro no casino foi feito!" });
   }
 }

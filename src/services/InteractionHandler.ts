@@ -1,6 +1,7 @@
 import { Interaction } from "discord.js";
 import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
+import { CasinoCmd } from "../commands/casino/casino";
 
 import { CommandToken, ICommand } from "../commands/CommandManager";
 
@@ -12,7 +13,7 @@ export class InteractionHandler {
   private readonly commands: ICommand[];
 
   constructor() {
-    this.commands = Container.getMany(CommandToken);
+    this.commands = Container.getMany(CommandToken).concat(Container.get(CasinoCmd));
   }
 
   async handle(interaction: Interaction): Promise<void> {
@@ -20,7 +21,7 @@ export class InteractionHandler {
       return Promise.reject("Won't run non-command interactions.");
     }
 
-    this.logger.info(`Received command ${interaction.commandName} by ${interaction.user.tag}`);
+    this.logger.debug("Received command", { name: interaction.commandName, by: interaction.user.tag });
 
     const command = this.commands.find((cmd) => cmd.name === interaction.commandName);
 
@@ -44,6 +45,6 @@ export class InteractionHandler {
       return;
     }
 
-    this.logger.debug(`Command ${interaction.commandName} ran succesfully`);
+    this.logger.info("Command ran succesfully", { command: interaction.commandName });
   }
 }

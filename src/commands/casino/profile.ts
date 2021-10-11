@@ -3,11 +3,9 @@ import { CommandInteraction, GuildMember, User } from "discord.js";
 import Container, { Service } from "typedi";
 import { CasinoRepository } from "../../services/CasinoRepository";
 import { ISubCommand } from "../CommandManager";
-import { CasinoCommandToken } from "./casino";
+import { CasinoSubCommandToken } from "./casino";
 
-import "../../extensions/array";
-
-@Service({ id: CasinoCommandToken, multiple: true })
+@Service({ id: CasinoSubCommandToken, multiple: true })
 export class CasinoProfileCmd implements ISubCommand {
   readonly name: string = "profile";
   readonly description: string = "Get a user's casino profile";
@@ -30,6 +28,6 @@ export class CasinoProfileCmd implements ISubCommand {
 
     const playerInfo = await repository.getPlayerInfo(target.id);
 
-    interaction.editReply(`TB: ${playerInfo.tb}`);
+    await interaction.editReply(`TB: ${playerInfo.tb}`);
   }
 }
