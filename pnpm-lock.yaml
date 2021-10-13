@@ -16,6 +16,7 @@ specifiers:
   chai: ^4.3.4
   common-tags: ^1.8.0
   copyfiles: ^2.4.1
+  dayjs: ^1.10.7
   discord-api-types: ^0.23.1
   discord.js: ^13.1.0
   dotenv: ^10.0.0
@@ -42,6 +43,7 @@ dependencies:
   '@types/underscore': 1.11.3
   canvas: 2.8.0
   common-tags: 1.8.0
+  dayjs: 1.10.7
   discord-api-types: 0.23.1
   discord.js: 13.1.0
   dotenv: 10.0.0
@@ -1505,6 +1507,10 @@ packages:
     resolution: {integrity: sha512-O7Xe5dLaqvY/aF/MFWArsAM1J4j7w1CSZlPCX9uHgmb+6SbkPd8Q4YOvfvH/cZGvFlJFfHOZKxQtmMUOoZhc/w==}
     dev: false
     optional: true
+
+  /dayjs/1.10.7:
+    resolution: {integrity: sha512-P6twpd70BcPK34K26uJ1KT3wlhpuOAPoMwJzpsIWUxHZ7wpmbdZL/hQqBDfz7hGurYSa5PhzdhDHtt319hL3ig==}
+    dev: false
 
   /debug/4.3.2:
     resolution: {integrity: sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==}

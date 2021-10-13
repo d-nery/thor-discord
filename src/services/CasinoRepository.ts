@@ -1,7 +1,7 @@
 import { CollectionReference, DocumentData, DocumentReference, Firestore } from "@google-cloud/firestore";
 import { Inject, Service } from "typedi";
 import { Logger } from "tslog";
-import { Player, playerConverter } from "../model/casino/player";
+import { Daily, Player, playerConverter } from "../model/casino/player";
 import { guildInfoConverter, GuildInfo } from "../model/casino/guild_info";
 import { BichoBet } from "../model/casino/bicho";
 
@@ -106,6 +106,10 @@ export class CasinoRepository {
 
   async setBichoBet(playerId: string, bet: BichoBet): Promise<void> {
     await this.player_collection.doc(playerId).update({ bet });
+  }
+
+  async setDailyStreak(playerId: string, daily: Daily): Promise<void> {
+    await this.player_collection.doc(playerId).update({ daily });
   }
 
   async resetBichoBet(playerId: string): Promise<void> {

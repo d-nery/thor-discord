@@ -1,10 +1,26 @@
+import dayjs from "dayjs";
+import isYesterday from "dayjs/plugin/isYesterday";
+import isToday from "dayjs/plugin/isToday";
+
+dayjs.extend(isYesterday);
+dayjs.extend(isToday);
+
 import { Client, Permissions } from "discord.js";
 import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
 import { CasinoBichoHelpCmd } from "../../commands/casino/bicho/help";
 import { CommandManager } from "../../commands/CommandManager";
 import { GuildInfo } from "../../model/casino/guild_info";
+import { Daily } from "../../model/casino/player";
 import { CasinoRepository } from "../CasinoRepository";
+import { Timestamp } from "@google-cloud/firestore";
+
+export class DailyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DailyError";
+  }
+}
 
 @Service()
 export class CasinoManager {
@@ -108,5 +124,39 @@ export class CasinoManager {
 
     await guild_member.roles.add(guild_info.role_id);
     this.logger.info("Added casino role to guild member", { guild: guildId, player: playerId });
+  }
+
+  async registerPlayerDaily(guildId: string, playerId: string): Promise<Daily> {
+    const now = dayjs();
+    const guild = this.client.guilds.cache.get(guildId);
+
+    if (!guild) {
+      throw "Guild not found!";
+    }
+
+    const repository = Container.get(CasinoRepository);
+    repository.guildId = guildId;
+
+    const player_info = await repository.getPlayerInfo(playerId);
+    const daily = player_info.daily;
+    const last = dayjs(daily.last.toDate());
+
+    if (last.isToday()) {
+      throw new DailyError("current last is today");
+    }
+
+    const streak = last.isYesterday() ? (daily.streak % 7) + 1 : 1;
+
+    const new_data: Daily = {
+      last: new Timestamp(now.unix(), 0),
+      streak: streak,
+    };
+
+    await repository.setDailyStreak(playerId, new_data);
+    await repository.setPlayerTb(playerId, player_info.tb + streak * 10);
+
+    this.logger.info("player registered for daily bonus", { playerId, streak: new_data });
+
+    return new_data;
   }
 }

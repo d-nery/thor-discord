@@ -15,6 +15,8 @@ import { CasinoRegisterCmd } from "./commands/casino/register";
 import { CasinoBichoCmd } from "./commands/casino/bicho/bicho";
 import { CasinoBichoHelpCmd } from "./commands/casino/bicho/help";
 import { CasinoBichoBetCmd } from "./commands/casino/bicho/bet";
+import { ReloadCmd } from "./commands/admin/reload";
+import { CasinoDailyCmd } from "./commands/casino/daily";
 
 /**
  * This method initializes everything and injects all dependencies
@@ -57,10 +59,10 @@ export default async (): Promise<void> => {
   Container.set(Firestore, admin.firestore());
 
   // Other Commands
-  Container.import([InfoCmd, RolesCmd, AvatarCmd, RobotCmd, CasinoRegisterCmd]);
+  Container.import([InfoCmd, RolesCmd, AvatarCmd, RobotCmd, CasinoRegisterCmd, ReloadCmd]);
 
   // Casino subcommands
-  Container.import([CasinoProfileCmd]);
+  Container.import([CasinoProfileCmd, CasinoDailyCmd]);
 
   // Casino subcommand groups
   Container.import([CasinoBichoCmd]);
