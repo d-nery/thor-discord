@@ -1,4 +1,4 @@
-import { CollectionReference, DocumentData, DocumentReference, Firestore } from "@google-cloud/firestore";
+import { CollectionReference, DocumentData, DocumentReference, FieldValue, Firestore } from "@google-cloud/firestore";
 import { Inject, Service } from "typedi";
 import { Logger } from "tslog";
 import { Daily, Player, playerConverter } from "../model/casino/player";
@@ -96,12 +96,8 @@ export class CasinoRepository {
     return (await this.player_collection.where("bet", "!=", false).get()).docs.map((v) => v.id);
   }
 
-  async setPlayerTb(playerId: string, tb: number): Promise<void> {
-    if (tb < 0) {
-      throw "TB cannot be negative";
-    }
-
-    await this.player_collection.doc(playerId).update({ tb });
+  async addPlayerTb(playerId: string, amount: number): Promise<void> {
+    await this.player_collection.doc(playerId).update({ tb: FieldValue.increment(amount) });
   }
 
   async setBichoBet(playerId: string, bet: BichoBet): Promise<void> {

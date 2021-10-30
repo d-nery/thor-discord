@@ -35,6 +35,11 @@ export class CasinoWalletTransferCmd implements ISubCommand {
     const target = interaction.options.getUser("to").id;
     const amount = interaction.options.getInteger("amount");
 
+    if (amount < 0) {
+      await interaction.editReply("Você precisa escolher um valor positivo para transferir!");
+      return;
+    }
+
     try {
       new_balance = await this.casinoManager.transferBalance(interaction.guildId, interaction.user.id, target, amount);
     } catch (err) {

@@ -159,8 +159,7 @@ export class CasinoManager {
       streak: streak,
     };
 
-    await repository.setDailyStreak(playerId, new_data);
-    await repository.setPlayerTb(playerId, player_info.tb + streak * 10);
+    await Promise.all([repository.setDailyStreak(playerId, new_data), repository.addPlayerTb(playerId, streak * 10)]);
 
     this.logger.info("player registered for daily bonus", { playerId, streak: new_data });
 
@@ -168,21 +167,24 @@ export class CasinoManager {
   }
 
   async transferBalance(guildId: string, from: string, to: string, amount: number): Promise<number> {
+    if (amount < 0) {
+      throw new RangeError("amount cannot be negative");
+    }
+
     const repository = Container.get(CasinoRepository);
     repository.guildId = guildId;
 
     const fromPlayer = await repository.getPlayerInfo(from);
-    const toPlayer = await repository.getPlayerInfo(to);
 
     if (fromPlayer.tb < amount) {
       throw new BalanceError("not enough TB on player's account");
     }
 
-    await repository.setPlayerTb(from, fromPlayer.tb - amount);
-    await repository.setPlayerTb(to, toPlayer.tb + amount);
+    await Promise.all([repository.addPlayerTb(from, -amount), repository.addPlayerTb(to, amount)]);
 
     this.logger.info("transferred balance", { from, to, amount });
 
-    return fromPlayer.tb - amount;
+    const updateFromPlayer = await repository.getPlayerInfo(from);
+    return updateFromPlayer.tb;
   }
 }

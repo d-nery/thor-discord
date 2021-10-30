@@ -5,6 +5,7 @@ import { Logger } from "tslog";
 import { Inject, Service } from "typedi";
 import { BichoBet, BichoBetType, BichoGroupMap } from "../../model/casino/bicho";
 import { CasinoRepository } from "../CasinoRepository";
+import { emojis } from "../../utils/entities";
 
 @Service()
 export class BichoManager {
@@ -43,20 +44,16 @@ export class BichoManager {
     const repository = Container.get(CasinoRepository);
     repository.guildId = guildId;
 
-    const player_info = await repository.getPlayerInfo(userId);
-
-    await repository.setPlayerTb(userId, player_info.tb - bet.amount);
-    await repository.setBichoBet(userId, bet);
+    await Promise.all([repository.addPlayerTb(userId, -bet.amount), repository.setBichoBet(userId, bet)]);
   }
 
   async announceBet(guildId: string, userId: string, bet: BichoBet): Promise<void> {
     const repository = Container.get(CasinoRepository);
     repository.guildId = guildId;
 
-    const user = await this.client.users.fetch(userId);
-    const guild_info = await repository.getGuildInfo();
-
+    const [user, guild_info] = await Promise.all([this.client.users.fetch(userId), repository.getGuildInfo()]);
     const bicho_channel = await this.client.channels.fetch(guild_info.bicho_channel_id);
+
     if (bicho_channel.isText()) {
       await bicho_channel.send({
         embeds: [
@@ -83,8 +80,9 @@ export class BichoManager {
     const formattedDraw = raw_draw.map((d) => "`" + String(d).padStart(2, "0") + "`");
     const formattedGroups = groups.map((d) => "`" + `(${String(d).padStart(2, " ")} - ${BichoGroupMap[d]})` + "`");
 
+    const get_prize = (bet: BichoBet, multiplier: number) => Math.ceil((bet.amount * multiplier) / (bet.cerca ? 5 : 1));
+
     for (const guildId of guild_list) {
-      const repository = Container.get(CasinoRepository);
       repository.guildId = guildId;
 
       const result_embed = new MessageEmbed()
@@ -99,9 +97,6 @@ export class BichoManager {
       const guild_players = await repository.getPlayerWithBetsList();
       let winners = [];
 
-      const get_prize = (bet: BichoBet, multiplier: number) =>
-        Math.ceil((bet.amount * multiplier) / (bet.cerca ? 5 : 1));
-
       const type_mult_results_map: [type: BichoBetType, mult: number, results: number[]][] = [
         [BichoBetType.GROUP, 15, groups],
         [BichoBetType.DEZENA, 25, dezenas],
@@ -110,17 +105,19 @@ export class BichoManager {
       ];
 
       for (const player of guild_players) {
-        const player_info = await repository.getPlayerInfo(player);
-        const user = await this.client.users.fetch(player);
+        const [player_info, user] = await Promise.all([
+          repository.getPlayerInfo(player),
+          this.client.users.fetch(player),
+        ]);
         const bet = player_info.bet;
 
         const [type, mult, results] = type_mult_results_map.find(([type]) => type === bet.type);
 
         if (bet.cerca ? results.includes(bet.bet) : results[0] === bet.bet) {
           const prize = get_prize(bet, mult);
-          await repository.setPlayerTb(player, player_info.tb + prize);
+          await repository.addPlayerTb(player, prize);
           winners = winners.concat(
-            `${user} - ${type} ${bet.bet} [${bet.cerca ? "Cerca" : "Cabeça"}] - Ganhou T฿ ${prize}`
+            `${user} - ${type} ${bet.bet} [${bet.cerca ? "Cerca" : "Cabeça"}] - Ganhou ${emojis.TB} ${prize}`
           );
         }
 
