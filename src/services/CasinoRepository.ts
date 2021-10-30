@@ -70,7 +70,7 @@ export class CasinoRepository {
       throw "Player already registered!";
     }
 
-    await this.player_collection.doc(playerId).withConverter(playerConverter).create(new Player(0, null));
+    await this.player_collection.doc(playerId).withConverter(playerConverter).create(new Player(0, null, null));
     this.logger.info("Added player to database", { collection: this.key, guildId: this.guildId, playerId: playerId });
   }
 

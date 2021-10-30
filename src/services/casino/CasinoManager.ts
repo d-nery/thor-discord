@@ -22,6 +22,13 @@ export class DailyError extends Error {
   }
 }
 
+export class BalanceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BalanceError";
+  }
+}
+
 @Service()
 export class CasinoManager {
   @Inject()
@@ -158,5 +165,24 @@ export class CasinoManager {
     this.logger.info("player registered for daily bonus", { playerId, streak: new_data });
 
     return new_data;
+  }
+
+  async transferBalance(guildId: string, from: string, to: string, amount: number): Promise<number> {
+    const repository = Container.get(CasinoRepository);
+    repository.guildId = guildId;
+
+    const fromPlayer = await repository.getPlayerInfo(from);
+    const toPlayer = await repository.getPlayerInfo(to);
+
+    if (fromPlayer.tb < amount) {
+      throw new BalanceError("not enough TB on player's account");
+    }
+
+    await repository.setPlayerTb(from, fromPlayer.tb - amount);
+    await repository.setPlayerTb(to, toPlayer.tb + amount);
+
+    this.logger.info("transferred balance", { from, to, amount });
+
+    return fromPlayer.tb - amount;
   }
 }

@@ -13,7 +13,7 @@ export type Daily = {
 };
 
 export class Player {
-  constructor(readonly tb: number, readonly daily?: Daily, readonly bet?: BichoBet) {}
+  constructor(readonly tb: number, readonly daily: Daily = null, readonly bet: BichoBet = null) {}
 }
 
 export const playerConverter = {
