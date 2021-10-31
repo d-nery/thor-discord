@@ -20,6 +20,9 @@ import { CasinoDailyCmd } from "./commands/casino/daily";
 import { CasinoWalletCmd } from "./commands/casino/wallet/wallet";
 import { CasinoWalletSeeCmd } from "./commands/casino/wallet/see";
 import { CasinoWalletTransferCmd } from "./commands/casino/wallet/transfer";
+import { CasinoRouletteCmd } from "./commands/casino/roulette/roulette";
+import { CasinoRuletteStartCmd } from "./commands/casino/roulette/start";
+import { CasinoRuletteBetCmd } from "./commands/casino/roulette/bet";
 
 /**
  * This method initializes everything and injects all dependencies
@@ -68,11 +71,14 @@ export default async (): Promise<void> => {
   Container.import([CasinoProfileCmd, CasinoDailyCmd]);
 
   // Casino subcommand groups
-  Container.import([CasinoBichoCmd, CasinoWalletCmd]);
+  Container.import([CasinoBichoCmd, CasinoWalletCmd, CasinoRouletteCmd]);
 
   // Bicho subcommand group subcommands
   Container.import([CasinoBichoHelpCmd, CasinoBichoBetCmd]);
 
   // Wallet subcommand group subcommands
   Container.import([CasinoWalletSeeCmd, CasinoWalletTransferCmd]);
+
+  // Rulette subcommand group subcommands
+  Container.import([CasinoRuletteStartCmd, CasinoRuletteBetCmd]);
 };

@@ -98,8 +98,23 @@ export class CasinoManager {
       ],
     });
 
+    const roulette_channel = await guild.channels.create("roleta", {
+      type: "GUILD_TEXT",
+      parent: casino_category,
+      permissionOverwrites: [
+        {
+          id: guild.roles.everyone,
+          deny: [Permissions.FLAGS.VIEW_CHANNEL],
+        },
+        {
+          id: casino_role.id,
+          allow: [Permissions.FLAGS.VIEW_CHANNEL],
+        },
+      ],
+    });
+
     await repository.registerGuild(
-      new GuildInfo(casino_role.id, casino_category.id, lobby_channel.id, bicho_channel.id)
+      new GuildInfo(casino_role.id, casino_category.id, lobby_channel.id, roulette_channel.id, bicho_channel.id)
     );
     await lobby_channel.send(
       "Olá! Casino blabla bla use /casino_register para entrar etc <explicação de cada comando>"

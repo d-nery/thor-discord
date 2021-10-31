@@ -30,6 +30,26 @@ export class DrawManager {
     this.logger.info("Scheduled jobs", { jobs: Object.keys(schedule.scheduledJobs) });
   }
 
+  async scheduleRouletteDraw(guildId: string, callback: (draw: number) => Promise<void>): Promise<void> {
+    const key = `${guildId}:roulette`;
+
+    if (key in schedule.scheduledJobs) {
+      throw new Error("job already scheduled");
+    }
+
+    schedule.scheduleJob(key, new Date(new Date().getTime() + 5 * 60 * 1000), async () => {
+      try {
+        const draw = _.random(0, 36);
+
+        await callback(draw);
+      } catch (err) {
+        this.logger.error("error drawing numbers", err);
+      }
+    });
+
+    this.logger.info("Scheduled roulette job", { jobs: Object.keys(schedule.scheduledJobs) });
+  }
+
   async bichoDraw(): Promise<void> {
     const pool = _.range(100);
     const draw = _.sample(pool, 10);
