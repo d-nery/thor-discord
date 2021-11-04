@@ -6,10 +6,11 @@ import { Inject, Service } from "typedi";
 import { CasinoRepository } from "../CasinoRepository";
 import { emojis, images } from "../../utils/entities";
 import { DrawManager } from "./DrawManager";
-import { ChipPositions, RouletteBet } from "../../model/casino/roulette";
+import { ChipPositions, RouletteBet, RoulettePayout, RoulettePossibleBetMap } from "../../model/casino/roulette";
 import { sleep } from "../../utils/sleep";
 import { createCanvas, loadImage } from "canvas";
 import { Frame } from "../../utils/frame";
+import { BalanceError } from "./CasinoManager";
 
 export type GuildBets = {
   available_colors: string[];
@@ -20,6 +21,13 @@ export type GuildBets = {
     };
   };
 };
+
+export class TooManyPlayersError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TooManyPlayersError";
+  }
+}
 
 type GuildBetsCollection = {
   [guildId: string]: GuildBets;
@@ -41,7 +49,6 @@ export class RouletteManager {
   async startRoulette(guildId: string): Promise<void> {
     await this.drawManager.scheduleRouletteDraw(guildId, async (draw) => {
       await this.announceResult(guildId, draw);
-      delete this.currentBets[guildId];
     });
 
     this.currentBets[guildId] = {
@@ -69,15 +76,24 @@ export class RouletteManager {
     return guildId in this.currentBets;
   }
 
-  async registerBet(guildId: string, userId: string, bet: RouletteBet): Promise<boolean> {
+  async registerBet(guildId: string, userId: string, bet: RouletteBet): Promise<Error> {
     if (!this.hasRunningGame) {
-      return false;
+      return new Error("No game running");
     }
 
     const guild_bets = this.currentBets[guildId];
 
     if (guild_bets.available_colors.length == 0) {
-      return false;
+      return new TooManyPlayersError("too many players");
+    }
+
+    const repository = Container.get(CasinoRepository);
+    repository.guildId = guildId;
+
+    const player_info = await repository.getPlayerInfo(userId);
+
+    if (player_info.tb < bet.value) {
+      return new BalanceError("Not enough balance");
     }
 
     if (!(userId in guild_bets.players)) {
@@ -91,7 +107,7 @@ export class RouletteManager {
 
     this.logger.debug("nova aposta registrada", this.currentBets);
 
-    return true;
+    return null;
   }
 
   async announceBet(guildId: string): Promise<void> {
@@ -120,19 +136,52 @@ export class RouletteManager {
   }
 
   async announceResult(guildId: string, draw: number): Promise<void> {
+    this.logger.debug("start processing roulette results", { guildId, draw });
+    const bets = this.currentBets[guildId];
+    delete this.currentBets[guildId];
+
     const repository = Container.get(CasinoRepository);
     repository.guildId = guildId;
 
     const guild_info = await repository.getGuildInfo();
     const roulette_channel = await this.client.channels.fetch(guild_info.roulette_channel_id);
 
-    if (roulette_channel.isText()) {
-      const img_msg = await roulette_channel.send(images.RouletteSpinning);
-      const msg = await roulette_channel.send(`Apostas encerradas! Sorteando...`);
-      await sleep(10000);
-      await img_msg.edit(images.Roulette[draw]);
-      await msg.edit(`Número sorteado: **${draw}**`);
+    if (!roulette_channel.isText()) {
+      return;
     }
+
+    const img_msg = await roulette_channel.send(images.RouletteSpinning);
+    const msg = await roulette_channel.send(`Apostas encerradas! Sorteando...`);
+    const sleeping = sleep(10000);
+
+    const prizes = this.calculatePrizes(bets, draw);
+    const prize_announce = [];
+
+    for (const { player: pid, tb } of prizes) {
+      const player = await this.client.users.fetch(pid);
+      await repository.addPlayerTb(pid, tb);
+
+      prize_announce.push(`${player}: ${emojis.TB} ${tb}`);
+      this.logger.debug("added roulette plyer prize", { tag: player.tag, pid, tb });
+    }
+
+    await sleeping;
+    await img_msg.edit(images.Roulette[draw]);
+    await msg.edit(`Número sorteado: **${draw}**\n${prize_announce.join("\n")}`);
+  }
+
+  private calculatePrizes(bets: GuildBets, draw: number): { player: string; tb: number }[] {
+    const prizes = Object.entries(bets.players).map(([pid, bet]) => ({
+      player: pid,
+      tb: bet.bets.reduce((acc, v) => {
+        const actualBet = RoulettePossibleBetMap[v.type][v.bet];
+        acc += actualBet.includes(draw) ? RoulettePayout[v.type] * v.value : -v.value;
+
+        return acc;
+      }, 0),
+    }));
+
+    return prizes;
   }
 
   private async buildGameImage(guildId: string): Promise<MessageAttachment> {

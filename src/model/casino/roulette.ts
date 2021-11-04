@@ -152,6 +152,19 @@ export const ChipPositions = {
   }),
 };
 
+export const RoulettePayout = {
+  [RouletteBetType.SINGLE]: 35,
+  [RouletteBetType.SPLIT]: 17,
+  [RouletteBetType.STREET]: 11,
+  [RouletteBetType.CORNER]: 8,
+  [RouletteBetType.DSTREET]: 5,
+  [RouletteBetType.TRIO]: 11,
+  [RouletteBetType.FFOUR]: 8,
+  [RouletteBetType.HALF]: 1,
+  [RouletteBetType.DOZEN]: 2,
+  [RouletteBetType.COLUMN]: 2,
+};
+
 export type RouletteBet = {
   value: number;
   type: RouletteBetType;

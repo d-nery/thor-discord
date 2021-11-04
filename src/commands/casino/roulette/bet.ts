@@ -9,7 +9,8 @@ import { Logger } from "tslog";
 import { Inject, Service } from "typedi";
 import _ from "underscore";
 import { RouletteBetType, RoulettePossibleBetFriendlyNameMap } from "../../../model/casino/roulette";
-import { RouletteManager } from "../../../services/casino/RouletteManager";
+import { BalanceError } from "../../../services/casino/CasinoManager";
+import { RouletteManager, TooManyPlayersError } from "../../../services/casino/RouletteManager";
 import { ISubCommand } from "../../CommandManager";
 
 import { CasinoRouletteSubCommandToken } from "./roulette";
@@ -106,34 +107,30 @@ export class CasinoRuletteBetCmd implements ISubCommand {
     });
 
     collector.once("collect", async (i) => {
+      let response = "Aposta cancelada, pode fazer novamente com `/casino roulette bet`";
+
       if (i.isSelectMenu()) {
         const roulette_bet = { value: amount, type, bet: parseInt(i.values[0]) };
 
         try {
-          if (!(await this.rouletteManager.registerBet(interaction.guildId, user.id, roulette_bet))) {
-            await interaction.editReply({
-              content: "Erro ao registrar aposta :( Acho que já tem 10 pessoas participando dessa rodada.",
-              embeds: [],
-              components: [],
-            });
-          } else {
-            await interaction.editReply({
-              content: "Aposta registrada! Pode registrar uma nova aposta se quiser!",
-              embeds: [],
-              components: [],
-            });
+          const err = await this.rouletteManager.registerBet(interaction.guildId, user.id, roulette_bet);
+
+          if (err instanceof TooManyPlayersError) {
+            response = "Erro ao registrar aposta! Já tem 10 pessoas participando dessa rodada :(";
+          } else if (err instanceof BalanceError) {
+            response = "Erro ao registrar aposta! Você não tem saldo suficiente! :(";
+          } else if (err == null) {
+            response = "Aposta registrada! Pode registrar uma nova aposta se quiser!";
             await this.rouletteManager.announceBet(interaction.guildId);
+          } else {
+            throw err;
           }
         } catch (err) {
           this.logger.error("error on bet registering", err);
         }
-      } else {
-        await interaction.editReply({
-          content: "Aposta cancelada, pode fazer novamente com `/casino roulette bet`",
-          embeds: [],
-          components: [],
-        });
       }
+
+      await interaction.editReply({ content: response, embeds: [], components: [] });
 
       collector.removeAllListeners("end");
     });

@@ -18,7 +18,7 @@ export class InteractionHandler {
 
   async handle(interaction: Interaction): Promise<void> {
     if (!interaction.isCommand()) {
-      return Promise.reject("Won't run non-command interactions.");
+      return;
     }
 
     this.logger.debug("Received command", { name: interaction.commandName, by: interaction.user.tag });
