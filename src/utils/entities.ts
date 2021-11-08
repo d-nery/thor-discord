@@ -8,18 +8,18 @@
 import { Emoji } from "discord.js";
 
 export const emojis = {
-  TB: new Emoji(null, { id: "899852654832930847", name: "tb" }),
+  TB: { id: "899852654832930847", name: "tb" } as Emoji,
   Chips: {
-    Y: new Emoji(null, { id: "904164487773442058", name: "ficha_amarela" }),
-    W: new Emoji(null, { id: "904164487286890546", name: "ficha_branco" }),
-    C: new Emoji(null, { id: "904164486854881310", name: "ficha_ciano" }),
-    O: new Emoji(null, { id: "904164487496609822", name: "ficha_laranja" }),
-    K: new Emoji(null, { id: "904164487563710515", name: "ficha_preta" }),
-    M: new Emoji(null, { id: "904164487517597726", name: "ficha_rosa" }),
-    P: new Emoji(null, { id: "904164487584702466", name: "ficha_roxa" }),
-    B: new Emoji(null, { id: "904164487605661736", name: "ficha_azul" }),
-    G: new Emoji(null, { id: "904164487614038056", name: "ficha_verde" }),
-    R: new Emoji(null, { id: "904164487920246784", name: "ficha_vermelha" }),
+    Y: { id: "904164487773442058", name: "ficha_amarela" } as Emoji,
+    W: { id: "904164487286890546", name: "ficha_branco" } as Emoji,
+    C: { id: "904164486854881310", name: "ficha_ciano" } as Emoji,
+    O: { id: "904164487496609822", name: "ficha_laranja" } as Emoji,
+    K: { id: "904164487563710515", name: "ficha_preta" } as Emoji,
+    M: { id: "904164487517597726", name: "ficha_rosa" } as Emoji,
+    P: { id: "904164487584702466", name: "ficha_roxa" } as Emoji,
+    B: { id: "904164487605661736", name: "ficha_azul" } as Emoji,
+    G: { id: "904164487614038056", name: "ficha_verde" } as Emoji,
+    R: { id: "904164487920246784", name: "ficha_vermelha" } as Emoji,
   },
 };
 

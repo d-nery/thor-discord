@@ -2,9 +2,8 @@ import { Client, User } from "discord.js";
 import { Inject, Service } from "typedi";
 import { Logger } from "tslog";
 
-import { InteractionHandler } from "./services/InteractionHandler";
-import { ReactionHandler } from "./services/ReactionHandler";
-import { DrawManager } from "./services/casino/DrawManager";
+import { InteractionHandler, ReactionHandler } from "./services";
+import { DrawManager } from "./services/casino";
 
 @Service()
 export class Bot {

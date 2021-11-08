@@ -4,7 +4,7 @@ import { CommandInteraction } from "discord.js";
 import Container, { Inject, Service } from "typedi";
 
 import { CommandManager, CommandPermission, CommandToken, ICommand } from "../CommandManager";
-import { CasinoRepository } from "../../services/CasinoRepository";
+import { CasinoRepository } from "../../services";
 
 @Service({ id: CommandToken, multiple: true })
 export class ReloadCmd implements ICommand {

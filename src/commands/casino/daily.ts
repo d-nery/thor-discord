@@ -2,9 +2,9 @@ import { SlashCommandSubcommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 import { Inject, Service } from "typedi";
 import { Daily } from "../../model/casino/player";
-import { CasinoManager, DailyError } from "../../services/casino/CasinoManager";
+import { CasinoManager, DailyError } from "../../services/casino";
 import { ISubCommand } from "../CommandManager";
-import { CasinoSubCommandToken } from "./casino";
+import { CasinoSubCommandToken } from ".";
 
 @Service({ id: CasinoSubCommandToken, multiple: true })
 export class CasinoDailyCmd implements ISubCommand {

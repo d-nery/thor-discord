@@ -9,8 +9,7 @@ import { Logger } from "tslog";
 import { Inject, Service } from "typedi";
 import _ from "underscore";
 import { RouletteBetType, RoulettePossibleBetFriendlyNameMap } from "../../../model/casino/roulette";
-import { BalanceError } from "../../../services/casino/CasinoManager";
-import { RouletteManager, TooManyPlayersError } from "../../../services/casino/RouletteManager";
+import { RouletteManager, TooManyPlayersError, BalanceError } from "../../../services/casino";
 import { ISubCommand } from "../../CommandManager";
 
 import { CasinoRouletteSubCommandToken } from "./roulette";

@@ -4,12 +4,19 @@ import {
   SlashCommandStringOption,
   SlashCommandSubcommandBuilder,
 } from "@discordjs/builders";
-import { CommandInteraction, MessageActionRow, MessageButton, MessageEmbed } from "discord.js";
+import {
+  ButtonInteraction,
+  CacheType,
+  CommandInteraction,
+  MessageActionRow,
+  MessageButton,
+  MessageEmbed,
+} from "discord.js";
 import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
 import { BichoBetType } from "../../../model/casino/bicho";
-import { BichoManager } from "../../../services/casino/BichoManager";
-import { CasinoRepository } from "../../../services/CasinoRepository";
+import { BichoManager } from "../../../services/casino";
+import { CasinoRepository } from "../../../services";
 import { ISubCommand } from "../../CommandManager";
 
 import { CasinoBichoSubCommandToken } from "./bicho";
@@ -123,7 +130,7 @@ export class CasinoBichoBetCmd implements ISubCommand {
       time: 30000,
     });
 
-    collector.once("collect", async (i) => {
+    collector.once("collect", async (i: ButtonInteraction<CacheType>) => {
       if (i.customId.endsWith("confirm")) {
         try {
           await this.bichoManager.registerBet(interaction.guildId, user.id, bicho_bet);

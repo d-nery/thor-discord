@@ -3,7 +3,7 @@ import { CommandInteraction } from "discord.js";
 import { Inject, Service } from "typedi";
 
 import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
-import { RobotRepository } from "../../services/RobotRepository";
+import { RobotRepository } from "../../services";
 import { buildRobotEmbed } from "../../utils/embeds";
 
 @Service({ id: CommandToken, multiple: true })

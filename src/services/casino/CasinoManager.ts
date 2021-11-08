@@ -5,15 +5,16 @@ import isToday from "dayjs/plugin/isToday";
 dayjs.extend(isYesterday);
 dayjs.extend(isToday);
 
+import { Timestamp } from "@google-cloud/firestore";
 import { Client, Permissions } from "discord.js";
 import { Logger } from "tslog";
-import Container, { Inject, Service } from "typedi";
-import { CasinoBichoHelpCmd } from "../../commands/casino/bicho/help";
-import { CommandManager } from "../../commands/CommandManager";
+import Container, { Service } from "typedi";
+
+import { CommandManager } from "../../commands";
+import { CasinoBichoHelpCmd } from "../../commands/casino";
 import { GuildInfo } from "../../model/casino/guild_info";
 import { Daily } from "../../model/casino/player";
 import { CasinoRepository } from "../CasinoRepository";
-import { Timestamp } from "@google-cloud/firestore";
 
 export class DailyError extends Error {
   constructor(message: string) {
@@ -31,14 +32,11 @@ export class BalanceError extends Error {
 
 @Service()
 export class CasinoManager {
-  @Inject()
-  private readonly client: Client;
-
-  @Inject()
-  private readonly logger: Logger;
-
-  @Inject()
-  private readonly commandManager: CommandManager;
+  constructor(
+    private readonly client: Client,
+    private readonly logger: Logger,
+    private readonly commandManager: CommandManager
+  ) {}
 
   async guildFirstTime(guildId: string): Promise<void> {
     const guild = this.client.guilds.cache.get(guildId);

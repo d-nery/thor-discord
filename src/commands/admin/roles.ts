@@ -3,7 +3,7 @@ import { Logger } from "tslog";
 import { CommandInteraction, Message } from "discord.js";
 import { Inject, Service } from "typedi";
 
-import { ConfigRepository } from "../../services/ConfigRepository";
+import { ConfigRepository } from "../../services";
 import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
 import { ConfigKey } from "../../model/config";
 

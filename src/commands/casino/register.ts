@@ -1,9 +1,17 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction, GuildMember, MessageActionRow, MessageButton, Permissions } from "discord.js";
+import {
+  ButtonInteraction,
+  CacheType,
+  CommandInteraction,
+  GuildMember,
+  MessageActionRow,
+  MessageButton,
+  Permissions,
+} from "discord.js";
 import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
-import { CasinoManager } from "../../services/casino/CasinoManager";
-import { CasinoRepository } from "../../services/CasinoRepository";
+import { CasinoManager } from "../../services/casino";
+import { CasinoRepository } from "../../services";
 import { CommandPermission, CommandToken, ICommand } from "../CommandManager";
 
 @Service({ id: CommandToken, multiple: true })
@@ -65,7 +73,7 @@ export class CasinoRegisterCmd implements ICommand {
         time: 60000,
       });
 
-      collector.once("collect", async (i) => {
+      collector.once("collect", async (i: ButtonInteraction<CacheType>) => {
         if (i.customId.endsWith("confirm")) {
           await interaction.editReply({ content: "Show! Criando tudo que é necessário...", components: [] });
 

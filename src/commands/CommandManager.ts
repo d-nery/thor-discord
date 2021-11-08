@@ -9,7 +9,7 @@ import { CommandInteraction } from "discord.js";
 import Container, { Inject, InjectMany, Service, Token } from "typedi";
 import { Logger } from "tslog";
 
-import { CasinoCmd } from "./casino/casino";
+import { CasinoCmd } from "./casino";
 
 export type CommandPermission = { id: string; type: number; permission: boolean };
 
@@ -57,9 +57,7 @@ export class CommandManager {
 
     this.logger.info(
       "Succesfully registered application commands",
-      resp.map((c) => {
-        return { id: c.id, name: c.name };
-      })
+      resp.map((c) => ({ id: c.id, name: c.name }))
     );
 
     const permissions = resp.map(({ id, name }) => {

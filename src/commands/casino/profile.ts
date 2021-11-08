@@ -1,7 +1,7 @@
 import { SlashCommandSubcommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, GuildMember, User } from "discord.js";
 import Container, { Service } from "typedi";
-import { CasinoRepository } from "../../services/CasinoRepository";
+import { CasinoRepository } from "../../services";
 import { ISubCommand } from "../CommandManager";
 import { CasinoSubCommandToken } from "./casino";
 

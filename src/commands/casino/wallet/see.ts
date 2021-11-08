@@ -2,7 +2,7 @@ import { SlashCommandSubcommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 import { Logger } from "tslog";
 import Container, { Inject, Service } from "typedi";
-import { CasinoRepository } from "../../../services/CasinoRepository";
+import { CasinoRepository } from "../../../services";
 import { emojis } from "../../../utils/entities";
 import { ISubCommand } from "../../CommandManager";
 

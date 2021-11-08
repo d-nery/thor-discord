@@ -2,27 +2,26 @@ import { Client, Intents } from "discord.js";
 import { ISettingsParam, Logger, TLogLevelName } from "tslog";
 import { Container } from "typedi";
 import admin, { ServiceAccount } from "firebase-admin";
-
-import { RolesCmd } from "./commands/admin/roles";
-import { InfoCmd } from "./commands/misc/info";
-import { AvatarCmd } from "./commands/misc/avatar";
-import { RobotCmd } from "./commands/misc/robot";
 import { Firestore } from "@google-cloud/firestore";
 
+import { RolesCmd, ReloadCmd } from "./commands/admin";
+import { InfoCmd, AvatarCmd, RobotCmd } from "./commands/misc";
+
 import { version } from "../package.json";
-import { CasinoProfileCmd } from "./commands/casino/profile";
-import { CasinoRegisterCmd } from "./commands/casino/register";
-import { CasinoBichoCmd } from "./commands/casino/bicho/bicho";
-import { CasinoBichoHelpCmd } from "./commands/casino/bicho/help";
-import { CasinoBichoBetCmd } from "./commands/casino/bicho/bet";
-import { ReloadCmd } from "./commands/admin/reload";
-import { CasinoDailyCmd } from "./commands/casino/daily";
-import { CasinoWalletCmd } from "./commands/casino/wallet/wallet";
-import { CasinoWalletSeeCmd } from "./commands/casino/wallet/see";
-import { CasinoWalletTransferCmd } from "./commands/casino/wallet/transfer";
-import { CasinoRouletteCmd } from "./commands/casino/roulette/roulette";
-import { CasinoRuletteStartCmd } from "./commands/casino/roulette/start";
-import { CasinoRuletteBetCmd } from "./commands/casino/roulette/bet";
+import {
+  CasinoBichoBetCmd,
+  CasinoBichoCmd,
+  CasinoBichoHelpCmd,
+  CasinoDailyCmd,
+  CasinoProfileCmd,
+  CasinoRegisterCmd,
+  CasinoRouletteCmd,
+  CasinoRuletteBetCmd,
+  CasinoRuletteStartCmd,
+  CasinoWalletCmd,
+  CasinoWalletSeeCmd,
+  CasinoWalletTransferCmd,
+} from "./commands/casino";
 
 /**
  * This method initializes everything and injects all dependencies
